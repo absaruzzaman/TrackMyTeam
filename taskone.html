@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TrackMyTeam - Employee Tracker System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-200 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">TrackMyTeam - Employee Tracker System</h1>
+
+    <form id="employeeForm" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <input type="text" id="empName" placeholder="Full Name" required class="p-2 border rounded-md"/>
+      <input type="email" id="empEmail" placeholder="Email" required class="p-2 border rounded-md"/>
+      <input type="text" id="empPosition" placeholder="Position" required class="p-2 border rounded-md"/>
+      <input type="text" id="empDepartment" placeholder="Department" required class="p-2 border rounded-md"/>
+      <input type="date" id="empJoinDate" required class="p-2 border rounded-md"/>
+      <select id="empStatus" required class="p-2 border rounded-md">
+        <option value="">Select Status</option>
+        <option value="Active">Active</option>
+        <option value="On Leave">On Leave</option>
+        <option value="Resigned">Resigned</option>
+      </select>
+      <div class="md:col-span-3">
+        <button type="submit" id="submitBtn" class="bg-blue-600 text-white w-full py-2 rounded-md hover:bg-blue-700">Add Employee</button>
+      </div>
+    </form>
+
+    <table class="w-full table-auto border border-gray-300 text-center text-sm">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="border px-2 py-2">Name</th>
+          <th class="border px-2 py-2">Email</th>
+          <th class="border px-2 py-2">Position</th>
+          <th class="border px-2 py-2">Department</th>
+          <th class="border px-2 py-2">Date of Joining</th>
+          <th class="border px-2 py-2">Status</th>
+          <th class="border px-2 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTable" class="bg-white">
+        <!-- Dynamic rows here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const employeeForm = document.getElementById("employeeForm");
+    const employeeTable = document.getElementById("employeeTable");
+    const submitBtn = document.getElementById("submitBtn");
+
+    let employees = JSON.parse(localStorage.getItem("employees")) || [];
+    let editIndex = null;
+
+    // Load existing data
+    window.onload = () => {
+      employees.forEach(addRowToTable);
+    };
+
+    employeeForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const employee = {
+        name: document.getElementById("empName").value,
+        email: document.getElementById("empEmail").value,
+        position: document.getElementById("empPosition").value,
+        department: document.getElementById("empDepartment").value,
+        doj: document.getElementById("empJoinDate").value,
+        status: document.getElementById("empStatus").value
+      };
+
+      if (editIndex === null) {
+        employees.push(employee);
+        localStorage.setItem("employees", JSON.stringify(employees));
+        addRowToTable(employee, employees.length - 1);
+      } else {
+        employees[editIndex] = employee;
+        localStorage.setItem("employees", JSON.stringify(employees));
+        updateTable();
+        editIndex = null;
+        submitBtn.textContent = "Add Employee";
+      }
+
+      employeeForm.reset();
+    });
+
+    function addRowToTable(employee, index) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="border px-2 py-2">${employee.name}</td>
+        <td class="border px-2 py-2">${employee.email}</td>
+        <td class="border px-2 py-2">${employee.position}</td>
+        <td class="border px-2 py-2">${employee.department}</td>
+        <td class="border px-2 py-2">${employee.doj}</td>
+        <td class="border px-2 py-2">${employee.status}</td>
+        <td class="border px-2 py-2 space-x-2">
+          <button onclick="editEmployee(${index})" class="bg-yellow-400 px-2 py-1 rounded text-white">Edit</button>
+          <button onclick="deleteEmployee(${index})" class="bg-red-500 px-2 py-1 rounded text-white">Delete</button>
+        </td>
+      `;
+      employeeTable.appendChild(row);
+    }
+
+    function updateTable() {
+      employeeTable.innerHTML = "";
+      employees.forEach(addRowToTable);
+    }
+
+    window.editEmployee = function (index) {
+      const emp = employees[index];
+      document.getElementById("empName").value = emp.name;
+      document.getElementById("empEmail").value = emp.email;
+      document.getElementById("empPosition").value = emp.position;
+      document.getElementById("empDepartment").value = emp.department;
+      document.getElementById("empJoinDate").value = emp.doj;
+      document.getElementById("empStatus").value = emp.status;
+      editIndex = index;
+      submitBtn.textContent = "Update Employee";
+    };
+
+    window.deleteEmployee = function (index) {
+      if (confirm("Are you sure you want to delete this employee?")) {
+        employees.splice(index, 1);
+        localStorage.setItem("employees", JSON.stringify(employees));
+        updateTable();
+      }
+    };
+  </script>
+</body>
+</html>
